@@ -1,0 +1,78 @@
+# A role config is an overlay on profile.yaml. It answers: "for THIS kind of
+# job, what do I lead with?"
+#
+# Build it:
+#     make resume ROLE=platform
+#     python scripts/generate_resume.py platform
+#
+# Nothing here repeats profile.yaml. Your job history is a fact; this file only
+# changes emphasis. If you find yourself restating history here, it belongs in
+# profile.yaml instead.
+
+title: Senior Platform Engineer
+
+summary: >
+  Platform engineer with 8 years building internal tooling and developer experience
+  that measurably speeds teams up. Focused on self-service infrastructure, golden-path
+  templates, and reducing the cognitive load between an idea and production.
+
+# One string, comma-separated. Applicant tracking systems parse this section
+# literally, so spell out both the acronym and the expansion where a recruiter
+# might search either: "Kubernetes (K8s)", "Infrastructure as Code (IaC)".
+skills: >
+  Platform Engineering, Developer Experience (DevEx), Internal Developer Platforms,
+  Amazon Web Services (AWS), Kubernetes (K8s), Docker, Terraform,
+  Infrastructure as Code (IaC), CI/CD Pipelines, GitHub Actions, GitOps,
+  Self-Service Infrastructure, Golden Path Templates, Observability, Python, Go, Bash
+
+# Sidebar lists. Keep them short — this template targets one page, and the
+# sidebar is the first thing to overflow.
+emphasis:
+  - Developer Experience
+  - Self-Service Tooling
+  - Golden Path Templates
+  - Internal Platforms
+  - Engineering Velocity
+
+technologies:
+  - 8 Years AWS
+  - EKS / Kubernetes
+  - Terraform / Terragrunt
+  - GitHub Actions
+  - Python / Go
+
+leadership: >
+  Senior Platform Engineer building tooling for a ~60-person engineering org
+
+# OPTIONAL. Which jobs to show, in order, by `id` from profile.yaml.
+# Omit this key and every job renders, newest first.
+#
+# This is your one-page pressure valve: as your history grows past what fits,
+# drop the oldest or least relevant rather than letting the layout silently
+# overflow onto page two.
+experience:
+  - northwind
+  - cascade
+  - pinehurst
+
+# OPTIONAL. Re-pitch a specific job for this role, keyed by `id`.
+# Anything you don't override falls through to profile.yaml.
+#
+# In practice you'll override your current job most often — that's the one a
+# reader weighs hardest, and the one worth re-aiming at each target.
+overrides:
+  northwind:
+    bullets:
+      - label: Internal Platform
+        text: >
+          Built the golden-path template repo and Terraform module library that a
+          ~60-person org uses to provision infrastructure, secrets, and observability
+          without filing a ticket — the paved road, not a gate.
+      - label: Developer Experience
+        text: >
+          Standardized CI across Java, Go, Python, and JavaScript so every pull request
+          gets identical scanning, test, and deploy feedback no matter whose repo it is.
+      - label: Self-Service Data
+        text: >
+          Shipped a hybrid orchestration deployment that let the data team build their
+          own pipelines against private resources, with freshness alerting they own.

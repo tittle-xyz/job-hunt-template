@@ -1,0 +1,55 @@
+# The same person as roles/platform.yaml, aimed at a different job.
+#
+# Compare the two side by side — that contrast IS the point of this tool:
+#     make resume ROLE=platform && make resume ROLE=sre
+#
+# Same history, same facts, same person. What changes is which parts lead, and
+# how the current job gets re-pitched. Nothing here is invented; the Cascade
+# on-call work is in profile.yaml either way. This config just moves it into
+# the light.
+
+title: Senior Site Reliability Engineer
+
+summary: >
+  Site reliability engineer with 8 years operating cloud infrastructure at scale.
+  Focused on observability, incident response, and the kind of automation that makes
+  reliability a property of the system rather than a thing people remember to do.
+
+skills: >
+  Site Reliability Engineering (SRE), Amazon Web Services (AWS), Kubernetes (K8s),
+  Terraform, Infrastructure as Code (IaC), Observability, Distributed Tracing,
+  Incident Response, Service Level Objectives (SLOs), High Availability,
+  Disaster Recovery, CI/CD Pipelines, Python, Go, Linux
+
+emphasis:
+  - System Reliability
+  - Incident Response
+  - Observability
+  - High Availability
+  - Disaster Recovery
+
+technologies:
+  - 8 Years AWS
+  - EKS / Kubernetes
+  - Distributed Tracing
+  - Terraform / Terragrunt
+  - Python / Go
+
+leadership: >
+  Senior Platform Engineer leading reliability practice across engineering teams
+
+overrides:
+  northwind:
+    bullets:
+      - label: Reliability
+        text: >
+          Owned the production reliability bar for a ~60-person org: error budgets that
+          teams actually set, and alerting that pages a human only when a human helps.
+      - label: Observability
+        text: >
+          Built the tracing and structured-logging layer that turned production
+          debugging from guesswork into following the evidence.
+      - label: Resilience
+        text: >
+          Introduced load and failure testing ahead of peak season, catching a
+          connection-pool ceiling in staging that would have paged during the holiday.

@@ -1,0 +1,92 @@
+# Who you are, and where you worked. These are facts — they don't change
+# between applications, so they live here and nowhere else.
+#
+# How you *pitch* those facts does change per application. That lives in
+# roles/*.yaml, which overlays this file. See roles/README.md.
+#
+# Copy this directory to `profile/` and make it yours:
+#     make init          (or: python scripts/init.py)
+#
+# `profile/` is gitignored. This example is not — it's the sample data that
+# lets a fresh clone build a real PDF before you've typed anything.
+
+identity:
+  name: Jordan Reyes
+  # 555-01xx is the reserved "fictional" range, and example.com can't receive
+  # mail. Both are deliberate: if this persona ever leaks into a real PDF,
+  # it's obvious at a glance rather than looking like a plausible human.
+  phone: "555-0142"
+  email: jordan.reyes@example.com
+  location: Austin, TX
+
+# Newest first — the template renders them in this order.
+#
+# `id` is the stable handle a role config uses to override a job's bullets.
+# Change a job's title or company freely; keep the id, and your role configs
+# keep working.
+experience:
+  - id: northwind
+    title: Senior Platform Engineer
+    company: Northwind Logistics
+    location: Austin, TX
+    dates: Mar 2021 - Present
+    bullets:
+      - label: Platform Tooling
+        text: >
+          Built golden-path template repos and composed Terraform modules that let a
+          ~60-person engineering org self-service provision infrastructure, secrets,
+          and observability without filing a ticket.
+      - label: Developer Experience
+        text: >
+          Standardized CI across four language stacks, giving every pull request the
+          same security scanning, test, and deploy feedback regardless of team.
+      - label: Cost
+        text: >
+          Cut idle spend ~30% by rightsizing non-production environments and putting
+          them on a schedule, with no measurable hit to developer velocity.
+
+  - id: cascade
+    title: Site Reliability Engineer
+    company: Cascade Freight
+    location: Portland, OR
+    dates: Jun 2018 - Mar 2021
+    bullets:
+      - label: Kubernetes Migration
+        text: >
+          Led a zero-downtime migration from self-managed Kubernetes to a managed
+          control plane, coordinating cutover across six service teams.
+      - label: Incident Response
+        text: >
+          Introduced structured on-call with runbooks and blameless review, taking the
+          median time-to-acknowledge from tens of minutes to under five.
+      - label: Observability
+        text: >
+          Rolled out distributed tracing across the request path, so production
+          debugging started from evidence instead of guesswork.
+
+  - id: pinehurst
+    title: Systems Administrator
+    company: Pinehurst Data
+    location: Portland, OR
+    dates: Aug 2016 - Jun 2018
+    bullets:
+      - label: Automation
+        text: >
+          Replaced manual server provisioning with configuration management, making a
+          two-day setup reproducible in under an hour.
+      - label: Compliance
+        text: >
+          Deployed host intrusion detection and centralized logging to satisfy a PCI
+          audit with no findings.
+
+certifications:
+  - name: AWS Certified Solutions Architect — Associate
+    dates: 2022-2025
+  - name: Certified Kubernetes Administrator (CKA)
+    dates: 2021-2024
+
+# Optional. Omit the key entirely and the section won't render.
+education:
+  - degree: B.S. Computer Science
+    school: Oregon State University
+    dates: 2016
