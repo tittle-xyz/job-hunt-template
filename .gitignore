@@ -1,0 +1,37 @@
+# Your personal data. Never commit this.
+# profile.example/ IS tracked — it's the sample scaffold.
+profile/
+
+# Secrets
+.env
+
+# Generated output
+data/
+resumes/tailored/
+cover_letters/tailored/
+
+# Your actual applications and leads are yours, not the template's
+applications/
+leads/
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+.pytest_cache/
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code local state
+.claude/settings.local.json

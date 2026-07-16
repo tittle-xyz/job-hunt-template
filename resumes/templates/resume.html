@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{ name }} - {{ title }}</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0.5in;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.4;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      gap: 24px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+    }
+
+    .name {
+      font-size: 22pt;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .title {
+      font-size: 11pt;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-section {
+      margin-bottom: 16px;
+    }
+
+    .sidebar-heading {
+      font-size: 9pt;
+      font-weight: bold;
+      color: #1a73b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .contact-item {
+      font-size: 9pt;
+      margin-bottom: 3px;
+    }
+
+    .contact-item a {
+      color: #1a73b8;
+      text-decoration: none;
+    }
+
+    .skills-list {
+      font-size: 9pt;
+      color: #555;
+    }
+
+    .emphasis-item, .tech-item {
+      font-size: 9pt;
+      color: #555;
+      margin-bottom: 2px;
+    }
+
+    .leadership-text {
+      font-size: 9pt;
+      color: #555;
+    }
+
+    .cert-item {
+      font-size: 8.5pt;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    .cert-name {
+      font-weight: 600;
+    }
+
+    .cert-dates, .cert-license {
+      font-size: 8pt;
+      color: #777;
+    }
+
+    .education-item {
+      font-size: 9pt;
+      color: #555;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+    }
+
+    .summary {
+      font-size: 10pt;
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .section-heading {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+      margin-top: 16px;
+    }
+
+    .section-heading:first-of-type {
+      margin-top: 0;
+    }
+
+    .job {
+      margin-bottom: 14px;
+    }
+
+    .job-header {
+      font-size: 10pt;
+      color: #1a73b8;
+      margin-bottom: 6px;
+    }
+
+    .job-title {
+      font-weight: 600;
+    }
+
+    .job-company {
+      font-weight: normal;
+    }
+
+    .bullets {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .bullets li {
+      font-size: 9.5pt;
+      margin-bottom: 5px;
+      padding-left: 12px;
+      position: relative;
+    }
+
+    .bullets li::before {
+      content: "●";
+      position: absolute;
+      left: 0;
+      color: #1a73b8;
+      font-size: 6pt;
+      top: 3px;
+    }
+
+    .bullet-label {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="name">{{ name }}</div>
+      <div class="title">{{ title }}</div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Connect</div>
+        <div class="contact-item">{{ phone }}</div>
+        <div class="contact-item"><a href="mailto:{{ email }}">{{ email }}</a></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Skills</div>
+        <div class="skills-list">{{ skills }}</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Emphasis On</div>
+        {% for item in emphasis %}
+        <div class="emphasis-item">{{ item }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Current Technologies</div>
+        {% for item in technologies %}
+        <div class="tech-item">{{ item }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Leadership</div>
+        <div class="leadership-text">{{ leadership }}</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Education & Certifications</div>
+        {% for cert in certifications %}
+        <div class="cert-item">
+          <div class="cert-name">{{ cert.name }}</div>
+          <div class="cert-dates">{{ cert.dates }}</div>
+          {% if cert.license %}<div class="cert-license">License {{ cert.license }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="education-item">
+          <strong>{{ education.school }}</strong><br>
+          {{ education.degree }}
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="summary">{{ summary }}</div>
+
+      <div class="section-heading">Experience</div>
+
+      {% for job in jobs %}
+      <div class="job">
+        <div class="job-header">
+          <span class="job-title">{{ job.title }}</span><span class="job-company">, {{ job.company }}, {{ job.location }}{% if job.dates %} | {{ job.dates }}{% endif %}</span>
+        </div>
+        <ul class="bullets">
+          {% for bullet in job.bullets %}
+          <li>{% if bullet.label %}<span class="bullet-label">{{ bullet.label }}:</span> {% endif %}{{ bullet.text }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>
