@@ -12,19 +12,19 @@ jobs:
   # Opens (and keeps updating) a release PR from the conventional commits on main.
   # Merging it tags the release and writes the changelog.
   #
-  # Worth knowing if you protect main, as this repo does: release-please opens its
-  # PR with GITHUB_TOKEN, and GitHub deliberately does not raise workflow-triggering
-  # events for GITHUB_TOKEN actions — the recursion guard. So ci.yml never runs on
-  # the release PR, and any required status checks on it stay pending forever. The
-  # PR then needs an admin merge.
+  # Worth knowing if you protect main, as this repo does: ci.yml does run on the
+  # release PR, but GitHub holds those runs as `action_required` — workflow runs
+  # from a first-time contributor need approving, and github-actions[bot] counts as
+  # one. So required checks sit pending until someone clicks approve (or the run is
+  # approved via the API), and only then can the PR merge.
   #
   # That's the accepted cost. The alternative is a PAT to create, scope, and rotate
-  # in every repo made from this template, which is a worse deal for a template than
-  # an occasional admin merge of a PR that only touches CHANGELOG.md and a version
-  # string — code that CI already vetted on main.
+  # in every repo made from this template — a worse deal than approving a run on a
+  # PR that only touches CHANGELOG.md and a version string, code CI already vetted
+  # on main.
   #
-  # It doesn't affect you unless you protect main too. A fresh repo from this
-  # template merges release PRs normally.
+  # None of this bites unless you protect main. A fresh repo from this template
+  # merges release PRs normally.
   release-please:
     runs-on: ubuntu-latest
     outputs:
@@ -68,6 +68,29 @@ jobs:
 
       - name: Install toaster
         run: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest
+
+      # This wait is the whole reason the badge is trustworthy.
+      #
+      # toaster scores "latest CI run green" by asking the API about the DEFAULT
+      # branch's most recent run. ci.yml and release-please.yml both trigger on the
+      # same push to main, so they race — and the first attempt at this scored while
+      # ci was still in progress, read the run as not-green, and wrote a badge saying
+      # 88 for a repo that scores 94. The badge was wrong in exactly the way this job
+      # exists to prevent.
+      - name: Wait for CI on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 40); do
+            conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow=ci.yml \
+              --commit "$GITHUB_SHA" --limit 1 --json conclusion --jq '.[0].conclusion // "pending"')
+            case "$conclusion" in
+              success)  echo "ci green on $GITHUB_SHA"; exit 0 ;;
+              pending|"") echo "waiting for ci ($i/40)..."; sleep 15 ;;
+              *)        echo "ci concluded '$conclusion' — not refreshing the badge"; exit 1 ;;
+            esac
+          done
+          echo "timed out waiting for ci"; exit 1
 
       - name: Refresh readiness badge
         env:
