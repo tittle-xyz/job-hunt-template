@@ -12,12 +12,23 @@
 # a fair trade for working out of the box. (Generating a *resume* from example
 # data is a different matter — you might send it — so that errors instead.)
 
-# The filter. A job is kept only if its title, tags, or description mentions one
-# of these. Matching is case-insensitive and word-boundary aware, so 'aws' does
-# not match 'laws'.
+# The filter. A job is kept only if its TITLE or TAGS mention one of these.
+# Descriptions are deliberately not searched — see search_config.wanted() for the
+# measurements behind that. Matching is case-insensitive and word-boundary aware,
+# so 'aws' does not match 'laws'.
 #
-# Widen this to catch more; tighten it to cut noise. This is the single biggest
-# lever on what lands in your database.
+# Because matching is on titles, this list has to contain the words that appear
+# in the titles you want — not just the technologies you know. That distinction
+# bites: a list of infrastructure tools like the one below will happily reject a
+# posting titled "Senior Software Engineer" that is, in fact, an infrastructure
+# job. Applied to one real 1,877-job database, this filter cut 76% of the rows as
+# noise, and a handful of genuine backend/infra roles went with them purely
+# because their titles said "Software Engineer".
+#
+# So: add the titles you'd accept, not only the tools you'd use. If you'd take a
+# backend role, put 'software engineer' in here and tolerate the extra volume.
+#
+# This is the single biggest lever on what lands in your database.
 keywords:
   - devops
   - sre
