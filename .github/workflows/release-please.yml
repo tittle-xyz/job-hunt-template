@@ -60,18 +60,41 @@ jobs:
   # points light.
   badge:
     needs: release-please
-    if: ${{ needs.release-please.outputs.pr }}
     runs-on: ubuntu-latest
     steps:
+      # Find the open release PR ourselves rather than reading the action's `pr`
+      # output. That output is only set when this particular run created or updated
+      # the PR — push a commit release-please doesn't consider release-worthy (a
+      # `ci:` or `docs:` one) and the output is empty even though a release PR is
+      # sitting right there. Gating on it meant the badge refreshed or didn't
+      # depending on which commit happened to land last, which is how PR #5 reached
+      # a release with no badge refresh at all.
+      - name: Find the open release PR
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("release-please--"))][0].headRefName // ""')
+          if [ -z "$branch" ]; then
+            echo "no open release PR — nothing to refresh"
+          else
+            echo "release PR branch: $branch"
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v7
+        if: steps.find.outputs.branch != ''
         with:
-          ref: ${{ fromJson(needs.release-please.outputs.pr).headBranchName }}
+          ref: ${{ steps.find.outputs.branch }}
 
       - uses: actions/setup-go@v5
+        if: steps.find.outputs.branch != ''
         with:
           go-version: stable
 
       - name: Install toaster
+        if: steps.find.outputs.branch != ''
         # v0.4.2 is the floor: earlier versions have the race described above.
         run: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@v0.4.2
 
@@ -79,6 +102,7 @@ jobs:
       # run and would answer correctly regardless. This is so the badge describes a
       # commit whose CI actually passed, rather than one still being judged.
       - name: Wait for CI on this commit
+        if: steps.find.outputs.branch != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -98,6 +122,7 @@ jobs:
       # and this badge), which tips the instructions-freshness ratio and costs 3
       # points. The badge is a claim about the repo, so score the repo.
       - name: Refresh readiness badge
+        if: steps.find.outputs.branch != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -105,6 +130,7 @@ jobs:
           grep -o 'aria-label="[^"]*"' docs/badge.svg | head -1
 
       - name: Commit if it moved
+        if: steps.find.outputs.branch != ''
         run: |
           if git diff --quiet docs/badge.svg; then
             echo "badge unchanged"
