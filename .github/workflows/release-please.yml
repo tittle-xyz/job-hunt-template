@@ -92,11 +92,21 @@ jobs:
           done
           echo "timed out waiting for ci"; exit 1
 
+      # Scores the repo by slug, which clones and scores the default branch —
+      # NOT the release branch we're standing on.
+      #
+      # That distinction is worth 3 points and took a wrong badge to find. One of
+      # toaster's signals is instructions freshness: what fraction of source commits
+      # postdate the last CLAUDE.md update. The release branch carries two extra
+      # commits (the release chore, and this badge) that tip the ratio past its
+      # threshold — 10 of 19 rather than 8 of 17. So the branch scores 90.5 while the
+      # repo it describes scores 93.5. The badge is a claim about the repo, so score
+      # the repo.
       - name: Refresh readiness badge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          toaster check . --format svg > docs/badge.svg
+          toaster check "$GITHUB_REPOSITORY" --format svg > docs/badge.svg
           grep -o 'aria-label="[^"]*"' docs/badge.svg | head -1
 
       - name: Commit if it moved
