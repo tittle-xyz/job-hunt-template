@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tittle-xyz/job-hunt-template/compare/job-hunt-v0.1.0...job-hunt-v0.1.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* stop generating the badge in CI — it races its own workflow ([f5c96d3](https://github.com/tittle-xyz/job-hunt-template/commit/f5c96d36033d6a7fff0a3f4cdd7be5e5ee94b1e1))
+
 ## 0.1.0 (2026-07-17)
 
 

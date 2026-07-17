@@ -5,4 +5,4 @@ Everything about *you* lives in profile/ and is gitignored. This package is the
 machinery, and knows nothing about who is running it.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
