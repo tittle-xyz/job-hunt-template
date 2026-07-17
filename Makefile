@@ -69,8 +69,9 @@ resume:
 test:
 	$(PY) -m pytest
 
+# Same set CI lints. If `make lint` checks less than CI does, it isn't the check.
 lint:
-	$(PY) -m pyflakes job_hunt tests
+	$(PY) -m pyflakes job_hunt scripts tests
 
 clean:
 	rm -rf data resumes/tailored
