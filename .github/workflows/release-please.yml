@@ -15,16 +15,16 @@ jobs:
   # Worth knowing if you protect main, as this repo does: ci.yml does run on the
   # release PR, but GitHub holds those runs as `action_required` — workflow runs
   # from a first-time contributor need approving, and github-actions[bot] counts as
-  # one. So required checks sit pending until someone clicks approve (or the run is
-  # approved via the API), and only then can the PR merge.
+  # one. So required checks sit pending until someone approves the run, and only
+  # then can the PR merge.
   #
-  # That's the accepted cost. The alternative is a PAT to create, scope, and rotate
-  # in every repo made from this template — a worse deal than approving a run on a
-  # PR that only touches CHANGELOG.md and a version string, code CI already vetted
-  # on main.
+  # That's the accepted cost, and it's the same deal every other protected repo in
+  # the org takes. The alternative is a PAT to create, scope, and rotate in every
+  # repo made from this template — a worse trade than approving a run on a PR that
+  # touches only CHANGELOG.md and a version string, code CI already vetted on main.
   #
   # None of this bites unless you protect main. A fresh repo from this template
-  # merges release PRs normally.
+  # merges release PRs without ceremony.
   release-please:
     runs-on: ubuntu-latest
     outputs:
