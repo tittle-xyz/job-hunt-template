@@ -4,7 +4,8 @@
 help:
 	@echo "Your job hunt, locally."
 	@echo
-	@echo "  make install            create a venv and install the tool"
+	@echo "  make install           create a venv and install the tool"
+	@echo "  make run               see it work: build both example resumes"
 	@echo "  make init              copy profile.example/ -> profile/ (yours, gitignored)"
 	@echo
 	@echo "  make ingest            fetch leads from the sources in search.yaml"
@@ -13,6 +14,7 @@ help:
 	@echo "  make resume ROLE=sre   build a tailored PDF from profile/roles/sre.yaml"
 	@echo
 	@echo "  make test              run the tests (no network, no keys needed)"
+	@echo "  make coverage          tests + a coverage report"
 	@echo "  make lint              check for unused/undefined names"
 	@echo "  make clean             remove the database and generated PDFs"
 	@echo
@@ -46,6 +48,19 @@ install: $(VENV)
 	@echo "Installed ($$($(PY) --version)). Next: make init"
 	@command -v typst >/dev/null 2>&1 || echo "NOTE: typst not found — needed for resumes. macOS: brew install typst"
 
+# Clone -> see the thing work, in one command, before committing to anything.
+# Builds both example resumes from profile.example so the contrast is visible:
+# one history, two pitches. --profile is explicit here because the generator
+# refuses to guess — building a resume from example data is exactly the mistake
+# worth being loud about, so a demo has to ask for it by name.
+run: $(VENV)
+	@$(PY) -m job_hunt resume platform --profile profile.example -o resumes/tailored/example_platform.pdf
+	@$(PY) -m job_hunt resume sre      --profile profile.example -o resumes/tailored/example_sre.pdf
+	@echo
+	@echo "Two resumes, one invented career. Same facts, aimed differently — open them"
+	@echo "side by side; that contrast is what this tool is for."
+	@echo "Now make it yours:  make init"
+
 # Deliberately not $(PY): init is stdlib-only and must work before `make install`,
 # on whatever python3 the machine has.
 init:
@@ -68,6 +83,9 @@ resume:
 
 test:
 	$(PY) -m pytest
+
+coverage:
+	$(PY) -m pytest --cov --cov-report=term
 
 # Same set CI lints. If `make lint` checks less than CI does, it isn't the check.
 lint:

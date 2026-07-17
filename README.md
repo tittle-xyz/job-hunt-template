@@ -29,9 +29,14 @@ and the pipeline are the real ones.*
 gh repo create my-job-hunt --template tittle-xyz/job-hunt-template --private --clone
 cd my-job-hunt
 make install
-make init
+make run                 # see it work: two resumes from the example profile
+make init                # now make it yours
 make resume ROLE=platform
 ```
+
+`make run` builds the two resumes above from the invented profile that ships here —
+one career, two pitches. Open them side by side before you write a word of your own;
+the contrast is the whole idea.
 
 **Make it private.** Your job hunt is nobody's business — not your employer's, not
 your coworkers'. `--private` above does that. The tool keeps your side of the

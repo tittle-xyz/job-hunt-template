@@ -40,9 +40,12 @@ jobs:
         run: python -m pyflakes job_hunt scripts tests
 
       - name: Test
-        run: python -m pytest
+        run: python -m pytest --cov --cov-report=term
         # No secrets are provided on purpose. The suite must pass with no API
         # keys, no network, and no profile/ — the state a fresh clone is in.
+        #
+        # Coverage is reported, not gated. A number that must go up forever gets
+        # gamed with tests nobody reads; this is here to show what isn't exercised.
 
       - name: The example must build a real resume
         run: |

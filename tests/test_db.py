@@ -17,6 +17,14 @@ def temp_db(tmp_path, monkeypatch):
     db.init_db()
 
 
+@pytest.fixture
+def conn():
+    """An open connection, closed afterwards so pytest doesn't warn about leaks."""
+    c = db.get_connection()
+    yield c
+    c.close()
+
+
 def add(conn, **overrides):
     """upsert + commit. upsert_job deliberately leaves the commit to its caller,
     so a whole source lands as one transaction; tests follow the same contract."""
@@ -44,28 +52,24 @@ def a_job(**overrides):
     return job
 
 
-def test_a_new_job_is_new():
-    conn = db.get_connection()
+def test_a_new_job_is_new(conn):
     assert add(conn) is True
 
 
-def test_the_same_job_twice_is_not_new():
-    conn = db.get_connection()
+def test_the_same_job_twice_is_not_new(conn):
     add(conn)
     assert add(conn) is False
     assert db.get_stats()["total"] == 1
 
 
-def test_same_id_different_source_is_a_different_job():
-    conn = db.get_connection()
+def test_same_id_different_source_is_a_different_job(conn):
     add(conn, source="remoteok", source_id="1")
     add(conn, source="remotive", source_id="1")
     assert db.get_stats()["total"] == 2
 
 
-def test_reingesting_does_not_clobber_your_triage():
+def test_reingesting_does_not_clobber_your_triage(conn):
     """Your status is yours. A re-fetch must not reset it to 'new'."""
-    conn = db.get_connection()
     add(conn)
     job_id = db.get_jobs()[0]["id"]
     db.update_status(job_id, "applied", "sent 2026-07-16")
@@ -77,15 +81,13 @@ def test_reingesting_does_not_clobber_your_triage():
     assert job["notes"] == "sent 2026-07-16"
 
 
-def test_tags_round_trip_as_a_list():
+def test_tags_round_trip_as_a_list(conn):
     """Stored as JSON, handed back as a list — callers never see the encoding."""
-    conn = db.get_connection()
     add(conn, tags=["devops", "k8s"])
     assert db.get_jobs()[0]["tags"] == ["devops", "k8s"]
 
 
-def test_filters():
-    conn = db.get_connection()
+def test_filters(conn):
     add(conn, source_id="1", source="remoteok")
     add(conn, source_id="2", source="remotive")
     db.update_status(db.get_jobs(source="remoteok")[0]["id"], "applied")
@@ -96,8 +98,7 @@ def test_filters():
     assert len(db.get_jobs(limit=1)) == 1
 
 
-def test_stats_counts_by_status_and_source():
-    conn = db.get_connection()
+def test_stats_counts_by_status_and_source(conn):
     add(conn, source_id="1", source="remoteok")
     add(conn, source_id="2", source="wwr")
     stats = db.get_stats()
@@ -106,15 +107,13 @@ def test_stats_counts_by_status_and_source():
     assert stats["by_source"] == {"remoteok": 1, "wwr": 1}
 
 
-def test_fetch_log_records_a_run():
-    conn = db.get_connection()
+def test_fetch_log_records_a_run(conn):
     db.log_fetch(conn, "remoteok", jobs_found=10, jobs_new=3)
     conn.commit()
     assert db.get_stats()["last_fetch"]["remoteok"]["total_new"] == 3
 
 
-def test_missing_optional_fields_are_fine():
-    conn = db.get_connection()
+def test_missing_optional_fields_are_fine(conn):
     assert add(
         conn, salary_min=None, salary_max=None, location=None, posted_at=None, description=None
     ) is True
