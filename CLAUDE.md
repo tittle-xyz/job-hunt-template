@@ -25,9 +25,14 @@ weak one. If a posting wants something they don't have, say so.
 
 ```sh
 make install            # venv + editable install (finds a python 3.11+)
+make run                # see it work: both example resumes, no profile needed
 make init               # profile.example/ -> profile/  (stdlib only, runs on 3.9)
-make test               # 79 tests, no network/keys/profile needed
-make lint
+
+make test               # 93 tests, no network/keys/profile needed
+make coverage           # tests + coverage report
+make lint               # pyflakes over job_hunt, scripts, tests — same set CI lints
+make badge              # refresh the readiness badge (needs the toaster binary)
+make clean
 
 job-hunt ingest [--source S]
 job-hunt list [--status new] [--source wwr] [--limit 20]
@@ -106,3 +111,19 @@ it. Fixtures live in `tests/fixtures/` as recorded real responses.
 
 Scrapers break; that's normal. `run_ingestion` already isolates a failing source so
 one dead board doesn't take down the run.
+
+**Commit messages are conventional** (`feat:`, `fix:`, `docs:`, `chore:`, `test:`).
+release-please reads them to build the changelog and pick the next version, so a
+sloppy prefix becomes a wrong release. Merging its PR cuts the release and refreshes
+`docs/badge.svg`.
+
+**CI gates ramp-up readiness at 85** (`tittle-xyz/toaster-ready`). Two things about
+that gate are worth knowing before it surprises you:
+
+- It scores with `--offline`, so it can't see that CI is green and always runs ~6
+  points under the repo's real score. The bar is effectively "91 with API access".
+- One of its signals is *instructions freshness*: the share of source commits that
+  postdate the last change to this file. It has already gone red once for that
+  reason, and the fix was to update this file — which was genuinely stale. If you
+  change how the repo works, say so here. That's not bureaucracy; a CLAUDE.md that
+  lies is worse than none, and this is the only check that notices.
