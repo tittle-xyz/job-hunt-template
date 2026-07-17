@@ -12,8 +12,7 @@ Usage:
 
 import argparse
 import json
-import sys
-from jobs_db import get_connection, get_jobs, update_status, get_stats, init_db
+from .db import get_connection, get_jobs, update_status, get_stats, init_db
 
 
 def cmd_list(args):
@@ -149,9 +148,23 @@ def cmd_search(args):
         print()
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Job leads CLI")
-    subparsers = parser.add_subparsers(dest='command', help='Commands')
+COMMANDS = {
+    'list': cmd_list,
+    'show': cmd_show,
+    'status': cmd_status,
+    'stats': cmd_stats,
+    'search': cmd_search,
+}
+
+
+def build_parser(prog=None):
+    """Build the parser for the lead-management commands.
+
+    __main__ adds `ingest` and `resume` to the subparsers this returns, so the
+    whole tool is one command with one --help.
+    """
+    parser = argparse.ArgumentParser(prog=prog, description="Your job hunt, locally.")
+    subparsers = parser.add_subparsers(dest='command', metavar='<command>')
 
     # list
     list_parser = subparsers.add_parser('list', help='List jobs')
@@ -176,25 +189,14 @@ def main():
     search_parser = subparsers.add_parser('search', help='Search jobs')
     search_parser.add_argument('query', help='Search query')
 
-    args = parser.parse_args()
+    # argparse offers no public way to get a parser's subparsers back, and
+    # __main__ needs to hang `ingest` and `resume` off the same group.
+    parser._subparsers_action = subparsers
+    return parser
 
-    if not args.command:
-        parser.print_help()
-        return
 
-    # Initialize DB if needed
+def dispatch(args) -> int:
+    """Run a lead-management command. Assumes args.command is one of COMMANDS."""
     init_db()
-
-    commands = {
-        'list': cmd_list,
-        'show': cmd_show,
-        'status': cmd_status,
-        'stats': cmd_stats,
-        'search': cmd_search,
-    }
-
-    commands[args.command](args)
-
-
-if __name__ == "__main__":
-    main()
+    COMMANDS[args.command](args)
+    return 0

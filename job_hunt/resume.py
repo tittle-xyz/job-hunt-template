@@ -225,29 +225,22 @@ def slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Build a tailored resume PDF from profile + role config.",
-    )
-    parser.add_argument("role", help="Role config name, e.g. 'sre' for profile/roles/sre.yaml")
-    parser.add_argument(
-        "--profile",
-        type=Path,
-        help="Profile directory (default: ./profile, falling back to an error)",
-    )
-    parser.add_argument("-o", "--output", type=Path, help="Output PDF path")
-    args = parser.parse_args()
+def build(role: str, profile=None, output=None) -> int:
+    """Build one resume. Returns a process exit code.
 
+    A mistake in your YAML should read as a sentence, not a traceback — so
+    ConfigError is caught here and printed plainly.
+    """
     try:
-        profile_dir = resolve_profile_dir(args.profile)
-        profile = load_yaml(profile_dir / "profile.yaml")
-        role = load_role(profile_dir, args.role)
-        data = merge(profile, role)
+        profile_dir = resolve_profile_dir(Path(profile) if profile else None)
+        profile_data = load_yaml(profile_dir / "profile.yaml")
+        role_data = load_role(profile_dir, role)
+        data = merge(profile_data, role_data)
 
-        out = args.output
+        out = Path(output) if output else None
         if out is None:
             name = slugify(data["identity"].get("name", "resume"))
-            title = slugify(data.get("title") or args.role)
+            title = slugify(data.get("title") or role)
             out = REPO_ROOT / "resumes" / "tailored" / f"{name}_{title}.pdf"
 
         pdf = render(data, out)
@@ -257,6 +250,17 @@ def main() -> int:
 
     print(f"Created: {pdf.relative_to(REPO_ROOT) if pdf.is_relative_to(REPO_ROOT) else pdf}")
     return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Build a tailored resume PDF from profile + role config.",
+    )
+    parser.add_argument("role", help="Role config name, e.g. 'sre' for profile/roles/sre.yaml")
+    parser.add_argument("--profile", help="Profile directory (default: ./profile)")
+    parser.add_argument("-o", "--output", help="Output PDF path")
+    args = parser.parse_args()
+    return build(args.role, profile=args.profile, output=args.output)
 
 
 if __name__ == "__main__":

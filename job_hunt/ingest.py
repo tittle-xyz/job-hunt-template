@@ -13,14 +13,13 @@ import json
 import os
 import re
 import urllib.request
-from datetime import datetime
 from pathlib import Path
 
 import feedparser
 from dotenv import load_dotenv
 
-import search_config
-from jobs_db import get_connection, init_db, upsert_job, log_fetch
+from . import search_config
+from .db import get_connection, init_db, upsert_job, log_fetch
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent / ".env")

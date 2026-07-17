@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-hunt"
+version = "0.1.0"
+description = "Run your job hunt locally: pull leads from job boards, keep them in SQLite, build tailored resumes from one profile."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Private :: Do Not Upload",
+]
+
+# Deliberately small. Everything else is the standard library — urllib does the
+# HTTP, sqlite3 does the storage, and Typst (a separate binary) does the PDF.
+# A tool you run on your own laptop during a stressful month should not rot
+# because a dependency moved on.
+dependencies = [
+    "pyyaml>=6.0",
+    "feedparser>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pyflakes>=3.0",
+]
+
+[project.scripts]
+job-hunt = "job_hunt.__main__:main"
+
+[tool.setuptools]
+packages = ["job_hunt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Tests must pass with no API keys, no network, and no profile/ — see
+# tests/README or the CI workflow.
+addopts = "-q"
