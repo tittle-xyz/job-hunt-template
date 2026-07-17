@@ -104,6 +104,17 @@ def enabled_sources(available: list[str]) -> list[str]:
     return [s for s in configured if s in available]
 
 
+def source_options(source: str) -> dict:
+    """Per-source settings from `source_options:` in search.yaml.
+
+    Most sources need nothing beyond keywords and queries. A couple genuinely do:
+    We Work Remotely serves one RSS feed per category, and the Ashby fetcher polls
+    a list of named companies. Those are choices, not constants, so they live in
+    config rather than in the fetcher.
+    """
+    return (load().get("source_options") or {}).get(source) or {}
+
+
 def matches(text: str) -> bool:
     """True if text mentions any configured keyword.
 
@@ -120,28 +131,33 @@ def matches(text: str) -> bool:
 
 
 def wanted(title: str, tags=None) -> bool:
-    """Decide whether to keep a job, based on its title and tags.
+    """Decide whether to keep a job. Titles only.
 
-    Deliberately does NOT read the description. Descriptions mention our
-    keywords constantly without the job being one: "net zero infrastructure",
-    "our reliability as a partner", a Business Intelligence role that lists AWS
-    among its tools. Measured against RemoteOK's feed, description matching
-    produced 10 hits out of 100 jobs and every single one was a false positive —
-    all the noise, none of the signal.
+    A title is a claim about what the job IS. Descriptions and tags merely
+    mention things, and both were measured doing far more harm than good:
 
-    A title is a claim about what the job IS. A description merely mentions
-    things. Filter on the claim.
+      - Descriptions: 10 hits out of 100 RemoteOK jobs, all 10 false positives.
+        A Social Media Manager whose posting says "infrastructure"; a Servpro ad
+        mentioning "reliability".
+      - Tags: on Remotive, 1 title match against 22 tag-only matches — every one
+        of the 22 noise, including six identical "Staff Software Engineer,
+        Product" posts caught by an 'aws' tag. RemoteOK is worse still: it tagged
+        a Medical Support Technician with 'golang'.
+
+    Tags describe the stack a team happens to use. That is not the same claim as
+    what the job is, so we don't treat it as one.
+
+    The cost is real and worth knowing: an infra role titled "Engineer III" with
+    a 'kubernetes' tag now slips through. That's rare, and cheap against a 96%
+    noise rate. The lever is `keywords` in search.yaml — list the titles you'd
+    accept, not just the tools you know.
+
+    `tags` is accepted and ignored so call sites can keep passing what they have.
 
     (fetch_hn_whos_hiring is the exception and matches raw text via matches()
     above, because a Who's-Hiring comment is prose with no title field to read.)
     """
-    if matches(title):
-        return True
-    if not tags:
-        return False
-    if isinstance(tags, str):
-        return matches(tags)
-    return matches(" ".join(str(t) for t in tags))
+    return matches(title)
 
 
 def query_location_pairs() -> list[tuple[str, str]]:

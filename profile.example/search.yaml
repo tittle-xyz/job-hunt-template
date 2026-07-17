@@ -2,9 +2,11 @@
 #
 #     make ingest            (or: python scripts/ingest_jobs.py)
 #
-# The shipped values describe an infrastructure/platform engineer in Colorado,
-# because that's the job hunt this tool was built for. They are an example, not
-# a default worth keeping — change them to yours first.
+# The defaults point at platform and infrastructure engineering, on purpose. It's
+# the work this tool was built during, it's a good corner of the industry to be
+# in, and a default is the strongest recommendation a template gets to make. Take
+# the nudge or don't — it's a nudge, not a constraint. Every line here is yours to
+# change, and the locations below are certainly wrong for you.
 #
 # Unlike the resume generator, ingestion falls back to this example when you
 # have no profile/ yet, so a fresh clone can fetch real jobs immediately. The
@@ -12,10 +14,12 @@
 # a fair trade for working out of the box. (Generating a *resume* from example
 # data is a different matter — you might send it — so that errors instead.)
 
-# The filter. A job is kept only if its TITLE or TAGS mention one of these.
-# Descriptions are deliberately not searched — see search_config.wanted() for the
-# measurements behind that. Matching is case-insensitive and word-boundary aware,
-# so 'aws' does not match 'laws'.
+# The filter. A job is kept only if its TITLE mentions one of these.
+#
+# Not its description, and not its tags — both were measured letting through far
+# more noise than signal, because they describe what a team uses rather than what
+# the job is. search_config.wanted() has the numbers. Matching is
+# case-insensitive and word-boundary aware, so 'aws' does not match 'laws'.
 #
 # Because matching is on titles, this list has to contain the words that appear
 # in the titles you want — not just the technologies you know. That distinction
@@ -30,21 +34,37 @@
 #
 # This is the single biggest lever on what lands in your database.
 keywords:
+  # Platform and infrastructure roles — what this default is pointed at.
+  - platform engineer
+  - platform team
+  - infrastructure
   - devops
   - sre
   - site reliability
-  - platform engineer
-  - infrastructure
+  - reliability
+  - cloud engineer
+
+  # The tools. These catch roles whose titles name the stack instead of the
+  # discipline ("Engineer, Kubernetes").
   - kubernetes
+  - k8s
   - terraform
   - aws
-  - cloud engineer
-  - platform team
-  - reliability
-  - k8s
   - docker
   - ci/cd
   - cicd
+
+  # Uncomment to widen to general software roles.
+  #
+  # Worth understanding before you do. On one real 1,877-job database this single
+  # line took matches from 24% to 37% — 244 more jobs. It surfaced a "Software
+  # Engineer, Platform" role that was otherwise invisible, and also every iOS and
+  # full-stack posting on the board. Backend and infra work is often posted under
+  # a plain "Software Engineer" title, so if you'd take those roles you need this;
+  # just expect to do more triage.
+  #
+  # - software engineer
+  # - backend engineer
 
 # What to type into a search box. Only some sources need this — the feed-based
 # ones just hand us everything and let `keywords` above do the filtering.
@@ -54,11 +74,11 @@ keywords:
 # requests. A few well-chosen terms beat an exhaustive list that gets you
 # rate-limited.
 queries:
+  - platform engineer
+  - infrastructure engineer
   - devops
   - sre
   - site reliability engineer
-  - platform engineer
-  - cloud engineer
 
 # Where. Used only by location-aware sources; the remote-first boards ignore it.
 # Leave empty for remote-only searching.
@@ -91,3 +111,62 @@ sources:
   - usajobs        # US federal, needs API key
   - adzuna         # needs API key
   - findwork       # needs API key
+
+# A couple of sources need more than keywords and queries.
+source_options:
+  wwr:
+    # We Work Remotely publishes one RSS feed per category, and the category is a
+    # useful pre-filter: the devops feed returns ~19 relevant jobs where the
+    # all-categories feed returns ~12, since its newest 100 are mostly other
+    # disciplines. Browse https://weworkremotely.com/categories for the rest —
+    # e.g. remote-design-jobs, remote-product-jobs, remote-programming-jobs.
+    category: remote-devops-sysadmin-jobs
+
+  ashby:
+    # This source doesn't search — it asks named companies directly, so the list
+    # IS the search. Empty list means the source skips itself.
+    #
+    # The default is a starter set of tech companies known to use Ashby and to
+    # hire platform/infrastructure people. It's a starting point, not a
+    # recommendation about any specific employer — prune it to the places you'd
+    # actually work, and add your own. Find more at https://www.ashbyhq.com/customers
+    # (the slug is the company's ashbyhq.com URL segment).
+    companies:
+      # AI/ML
+      - roboflow
+      - openai
+      - cursor
+      - replicate
+      - anyscale
+      - runway
+      - pinecone
+      - weaviate
+      - harvey
+      - suno
+      - replit
+      - lumaai
+      # Developer tools
+      - modal
+      - notion
+      - linear
+      - supabase
+      - posthog
+      - sanity
+      - zapier
+      # Infrastructure / fintech
+      - ramp
+      - moderntreasury
+      - vanta
+      - snowflake
+      - fullstory
+      - hackerone
+      # Other
+      - deel
+      - lemonade
+      - gorgias
+      - uipath
+      - deliveroo
+      - hopper
+      - sequoia
+      - signalfire
+      - magicschool

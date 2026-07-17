@@ -193,11 +193,18 @@ def fetch_adzuna() -> list:
 
 
 def fetch_weworkremotely() -> list:
-    """Fetch jobs from We Work Remotely RSS feed."""
+    """Fetch jobs from a We Work Remotely category RSS feed."""
     print("Fetching We Work Remotely...")
 
+    # WWR publishes one feed per category. The category is a real pre-filter and
+    # worth keeping — the devops feed yields ~19 relevant jobs where the
+    # all-categories feed yields ~12, because the latter's newest 100 are mostly
+    # other disciplines. But which category is a choice, so it's configurable.
+    category = search_config.source_options('wwr').get(
+        'category', 'remote-devops-sysadmin-jobs'
+    )
     feed = feedparser.parse(
-        "https://weworkremotely.com/categories/remote-devops-sysadmin-jobs.rss"
+        f"https://weworkremotely.com/categories/{category}.rss"
     )
 
     jobs = []
@@ -212,6 +219,11 @@ def fetch_weworkremotely() -> list:
         else:
             company = None
             role = title
+
+        # The category is a good pre-filter, not a perfect one: WWR's own
+        # devops/sysadmin feed carries the occasional Help Desk or Sales Engineer.
+        if not wanted(role):
+            continue
 
         jobs.append({
             'source': 'wwr',
@@ -824,21 +836,13 @@ def fetch_ashby() -> list:
     """Fetch jobs from Ashby ATS for target companies."""
     print("Fetching Ashby (target companies)...")
 
-    # Company slugs to check - these are companies on our target list that use Ashby
-    # Add new companies here as you discover them
-    # Find more at: https://www.ashbyhq.com/customers
-    ASHBY_COMPANIES = [
-        # AI/ML
-        'roboflow', 'openai', 'cursor', 'replicate', 'anyscale', 'runway',
-        'pinecone', 'weaviate', 'harvey', 'suno', 'replit', 'lumaai',
-        # Developer tools
-        'modal', 'notion', 'linear', 'supabase', 'posthog', 'sanity', 'zapier',
-        # Infrastructure/Fintech
-        'ramp', 'moderntreasury', 'vanta', 'snowflake', 'fullstory', 'hackerone',
-        # Other tech
-        'deel', 'lemonade', 'gorgias', 'uipath', 'deliveroo', 'hopper',
-        'sequoia', 'signalfire', 'magicschool',
-    ]
+    # Which companies to poll. Unlike the job boards, this source doesn't search —
+    # it walks a named list and asks each one directly, so the list IS the search.
+    # Yours to edit: source_options.ashby.companies in search.yaml.
+    ASHBY_COMPANIES = search_config.source_options('ashby').get('companies') or []
+    if not ASHBY_COMPANIES:
+        print("  Skipping - no companies configured (source_options.ashby.companies)")
+        return []
 
     jobs = []
     seen_ids = set()
