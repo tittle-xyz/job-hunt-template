@@ -1,6 +1,7 @@
 # job-hunt-template
 
 [![ci](https://github.com/tittle-xyz/job-hunt-template/actions/workflows/ci.yml/badge.svg)](https://github.com/tittle-xyz/job-hunt-template/actions/workflows/ci.yml)
+[![toaster-ready](docs/badge.svg)](https://github.com/tittle-xyz/toaster-ready)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 **Run your job hunt on your own machine: pull leads from 14 job boards into SQLite,

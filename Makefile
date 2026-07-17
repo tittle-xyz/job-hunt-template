@@ -16,6 +16,7 @@ help:
 	@echo "  make test              run the tests (no network, no keys needed)"
 	@echo "  make coverage          tests + a coverage report"
 	@echo "  make lint              check for unused/undefined names"
+	@echo "  make badge             refresh the readiness badge in the README"
 	@echo "  make clean             remove the database and generated PDFs"
 	@echo
 	@echo "Everything about you lives in profile/ and is gitignored."
@@ -90,6 +91,18 @@ coverage:
 # Same set CI lints. If `make lint` checks less than CI does, it isn't the check.
 lint:
 	$(PY) -m pyflakes job_hunt scripts tests
+
+# Refresh the readiness badge in the README.
+#
+# Deliberately manual. CI gates readiness on every push, but it can't commit the
+# badge back — main is protected and the Actions bot isn't an admin. It also
+# scores with --offline, so a CI-written badge would read 6 points low: it can't
+# see that CI is green. Run this when the score moves; the gate makes sure it
+# can't quietly fall below 85 in the meantime.
+badge:
+	@command -v toaster >/dev/null || { echo "toaster not installed: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest"; exit 1; }
+	@toaster check . --format svg > docs/badge.svg
+	@echo "docs/badge.svg -> $$(grep -o 'aria-label=\"[^\"]*\"' docs/badge.svg | head -1)"
 
 clean:
 	rm -rf data resumes/tailored
