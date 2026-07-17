@@ -94,11 +94,24 @@ lint:
 
 # Refresh the readiness badge in the README.
 #
-# Deliberately manual. CI gates readiness on every push, but it can't commit the
-# badge back — main is protected and the Actions bot isn't an admin. It also
-# scores with --offline, so a CI-written badge would read 6 points low: it can't
-# see that CI is green. Run this when the score moves; the gate makes sure it
-# can't quietly fall below 85 in the meantime.
+# Manual on purpose, and it was tried the other way first — see
+# tittle-xyz/toaster-ready#28.
+#
+# toaster's "CI green" signal asks for the newest run on the default branch across
+# all workflows, and treats an in-progress run as no-data (-6). Any workflow that
+# scores the repo is itself a run on the default branch, and cannot be complete
+# while it's running. So a badge generated inside Actions races its own workflow
+# and lands on 94 or 88 depending on which run the API lists first. Two attempts
+# to fix that from this side (waiting for ci; scoring the repo by slug instead of
+# the checkout) each fixed a real bug and neither fixed the race, because the race
+# isn't ours.
+#
+# Generated from a laptop there's no race, and the number is right. The CI gate at
+# 85 means a stale badge can only ever understate a repo that improved.
+#
+# When #28 lands (filter to the newest *completed* run), this can move into the
+# release workflow and refresh itself on the release PR — that branch isn't
+# protected, so the bot can commit there.
 badge:
 	@command -v toaster >/dev/null || { echo "toaster not installed: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest"; exit 1; }
 	@toaster check . --format svg > docs/badge.svg
