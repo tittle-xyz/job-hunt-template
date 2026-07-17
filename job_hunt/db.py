@@ -6,9 +6,19 @@ Job leads database schema and utilities.
 import sqlite3
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 DB_PATH = Path(__file__).parent.parent / "data" / "jobs.db"
+
+
+def _now() -> str:
+    """UTC timestamp, timezone-aware.
+
+    datetime.utcnow() is deprecated and slated for removal — it returned a naive
+    datetime that claimed nothing about its own timezone, which is how you end up
+    with a database of ambiguous timestamps.
+    """
+    return datetime.now(timezone.utc).isoformat()
 
 
 def get_connection():
@@ -79,7 +89,7 @@ def upsert_job(conn, job: dict) -> bool:
     )
     existing = cursor.fetchone()
 
-    now = datetime.utcnow().isoformat()
+    now = _now()
     tags_json = json.dumps(job.get('tags', []))
 
     if existing:
@@ -144,7 +154,7 @@ def log_fetch(conn, source: str, jobs_found: int, jobs_new: int, error: str = No
     conn.execute("""
         INSERT INTO fetch_log (source, fetched_at, jobs_found, jobs_new, error)
         VALUES (?, ?, ?, ?, ?)
-    """, (source, datetime.utcnow().isoformat(), jobs_found, jobs_new, error))
+    """, (source, _now(), jobs_found, jobs_new, error))
 
 
 def get_jobs(status: str = None, source: str = None, limit: int = 50) -> list:

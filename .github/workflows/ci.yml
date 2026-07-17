@@ -1,0 +1,67 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # A template nobody has touched in months should still be known-good on the day
+  # a friend clones it.
+  schedule:
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Installed so the PDF path is genuinely exercised somewhere. Without it the
+      # rendering tests skip, and "the resume builds" is the whole point of the tool.
+      - name: Install typst
+        uses: typst-community/setup-typst@v5
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: python -m pyflakes job_hunt scripts tests
+
+      - name: Test
+        run: python -m pytest
+        # No secrets are provided on purpose. The suite must pass with no API
+        # keys, no network, and no profile/ — the state a fresh clone is in.
+
+      - name: The example must build a real resume
+        run: |
+          python scripts/init.py --no-input --name "CI Smoke Test" --email ci@example.com
+          python -m job_hunt resume platform
+          test -f resumes/tailored/ci_smoke_test_senior_platform_engineer.pdf
+
+  # init runs before `make install`, on whatever python the machine has. macOS
+  # still ships 3.9, so that's the floor it has to clear — the rest of the tool
+  # needs 3.11+, but the script that sets you up cannot.
+  init-on-old-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: init.py must run with no dependencies installed
+        run: |
+          python scripts/init.py --dry-run --no-input --name "Old Python"
+          python scripts/init.py --no-input --name "Old Python" --email old@example.com
+          grep -q "Old Python" profile/profile.yaml

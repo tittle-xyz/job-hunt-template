@@ -1,0 +1,56 @@
+[
+ {
+  "last_updated": 1784250630,
+  "legal": "API Terms of Service: Please link back (with follow, and without nofollow!) to the URL on Remote OK and mention Remote OK as a source, so we get traffic back from your site. If you do not we'll have to suspend API access.\n\nPlease don't use the Remote OK logo without written permission as it's a registered trademark, please DO use our name Remote OK though."
+ },
+ {
+  "id": "999001",
+  "slug": "example-co-senior-devops-engineer",
+  "company": "Example Co",
+  "position": "Senior DevOps Engineer",
+  "tags": [
+   "devops",
+   "aws",
+   "kubernetes"
+  ],
+  "location": "Remote",
+  "salary_min": 150000,
+  "salary_max": 190000,
+  "url": "https://remoteok.com/remote-jobs/999001",
+  "description": "We are looking for a DevOps engineer to own our Kubernetes platform.",
+  "date": "2026-07-15T09:00:00+00:00",
+  "_fixture_note": "SYNTHETIC. Real shape, invented content: the live feed had no infra job to record."
+ },
+ {
+  "slug": "remote-product-director-edtech-digital-learning-peopleworth-1134884",
+  "id": "1134884",
+  "epoch": 1784122076,
+  "date": "2026-07-15T13:27:56+00:00",
+  "company": "peopleworth",
+  "company_logo": "",
+  "position": "Product Director EdTech Digital Learning",
+  "tags": [
+   "copywriting",
+   "non tech",
+   "product manager",
+   "exec",
+   "design",
+   "saas",
+   "embedded",
+   "customer support",
+   "marketing",
+   "content writing",
+   "senior",
+   "ops",
+   "recruiter",
+   "digital nomad"
+  ],
+  "description": "<strong>Intro<br><br></strong>The organisation has reached an important inflection point. It has built a proven product, established strong market traction, and is entering its next phase of growth. The challenge is no longer proving the model. The challenge is scaling it without compromising quality.<br><br>That is what this role is for.<br><br>We are looking for a Product Director who thrives on",
+  "location": "Manchester, Manchester, England, United Kingdom",
+  "apply_url": "https://remoteOK.com/remote-jobs/remote-product-director-edtech-digital-learning-peopleworth-1134884",
+  "salary_min": 0,
+  "salary_max": 0,
+  "logo": "",
+  "url": "https://remoteOK.com/remote-jobs/remote-product-director-edtech-digital-learning-peopleworth-1134884"
+ }
+]

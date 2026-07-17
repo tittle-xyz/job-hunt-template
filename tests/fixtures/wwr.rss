@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss">
+  <channel>
+    <title>We Work Remotely: DevOps and Sysadmin Jobs</title>
+    <link>https://weworkremotely.com/categories/remote-devops-sysadmin-jobs.rss</link>
+    <description>(trimmed for fixture)</description>
+    <language>en-US</language>
+    <ttl>60</ttl>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/5842/logo.gif" type="image/png"/>
+      <title>WME: Senior DevOps Engineer, Applications</title>
+      <region>Anywhere in the World</region>
+      <country></country>
+      <state></state>
+      <skills>Cross-Browser Development, Database, Decision Frameworks, Computer Vision, DevOps, Hardware/Software Support, Cross-Selling, HR Software, Construction &amp; Engineering Project Management, and Brand Identity Design</skills>
+      <category>DevOps and Sysadmin</category>
+      <type>Full-Time</type>
+      <description>(trimmed for fixture)</description>
+      <pubDate>Thu, 16 Jul 2026 14:57:15 +0000</pubDate>
+      <expires_at>Sat, 15 Aug 2026 14:57:15 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/wme-senior-devops-engineer-applications</guid>
+      <link>https://weworkremotely.com/remote-jobs/wme-senior-devops-engineer-applications</link>
+    </item><item>
+    <item>
+      <title>ICF: Senior DevOps Engineer</title>
+      <region>Virginia</region>
+      <country>🇺🇸 United States of America</country>
+      <state></state>
+      <skills>Adobe Photoshop, Analytics, Cross-Browser Development, Data Visualization, Computer Vision, Cross-Selling, Deal Closure, Analytics Tools,  Data Visualization, and Composition</skills>
+      <category>DevOps and Sysadmin</category>
+      <type>Full-Time</type>
+      <description>(trimmed for fixture)</description>
+      <pubDate>Thu, 16 Jul 2026 14:57:15 +0000</pubDate>
+      <expires_at>Sat, 15 Aug 2026 14:57:15 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/icf-senior-devops-engineer</guid>
+      <link>https://weworkremotely.com/remote-jobs/icf-senior-devops-engineer</link>
+    </item><item>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/5840/logo.gif" type="image/png"/>
+      <title>Avalon Administrative Services: DevOps Engineer III</title>
+      <region>Anywhere in the World</region>
+      <country>🇺🇸 United States of America</country>
+      <state></state>
+      <skills>Adobe Photoshop, Containers, Cross-Browser Development, Decision Frameworks, Estimating and Cost Forecasting, Computer Vision, DevOps, Cross-Selling, Deal Closure, and Composition</skills>
+      <category>DevOps and Sysadmin</category>
+      <type>Full-Time</type>
+      <description>(trimmed for fixture)</description>
+      <pubDate>Thu, 16 Jul 2026 14:57:15 +0000</pubDate>
+      <expires_at>Sat, 15 Aug 2026 14:57:15 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/avalon-administrative-services-devops-engineer-iii</guid>
+      <link>https://weworkremotely.com/remote-jobs/avalon-administrative-services-devops-engineer-iii</link>
+    </item></channel></rss>
