@@ -19,30 +19,21 @@ from pathlib import Path
 import feedparser
 from dotenv import load_dotenv
 
+import search_config
 from jobs_db import get_connection, init_db, upsert_job, log_fetch
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-# Keywords for filtering relevant jobs
-DEVOPS_KEYWORDS = [
-    'devops', 'sre', 'site reliability', 'platform engineer', 'infrastructure',
-    'kubernetes', 'terraform', 'aws', 'cloud engineer', 'platform team',
-    'reliability', 'k8s', 'docker', 'ci/cd', 'cicd'
-]
+
+def matches_keywords(text: str) -> bool:
+    """Check if text mentions any keyword from profile/search.yaml."""
+    return search_config.matches(text)
 
 
-def matches_keywords(text: str, keywords: list = DEVOPS_KEYWORDS) -> bool:
-    """Check if text contains any of the keywords (word boundary aware)."""
-    if not text:
-        return False
-    text_lower = text.lower()
-    for kw in keywords:
-        # Use word boundary check to avoid false positives like "laws" matching "aws"
-        pattern = r'\b' + re.escape(kw) + r'\b'
-        if re.search(pattern, text_lower):
-            return True
-    return False
+def wanted(title, tags=None) -> bool:
+    """Keep this job? Judged on title and tags — not description. See search_config.wanted."""
+    return search_config.wanted(title or "", tags)
 
 
 # =============================================================================
@@ -65,7 +56,7 @@ def fetch_remoteok() -> list:
         title = item.get('position', '')
         desc = item.get('description', '')
 
-        if matches_keywords(title) or matches_keywords(' '.join(tags)) or matches_keywords(desc):
+        if wanted(title, tags):
             jobs.append({
                 'source': 'remoteok',
                 'source_id': str(item.get('id')),
@@ -109,6 +100,8 @@ def fetch_hn_whos_hiring() -> list:
             with urllib.request.urlopen(req, timeout=10) as response:
                 comment = json.loads(response.read().decode())
 
+            # The exception to the title-and-tags rule: a Who's Hiring post is a
+            # freeform comment with no title field, so raw text is all there is.
             text = comment.get('text', '')
             if not text or not matches_keywords(text):
                 continue
@@ -150,17 +143,9 @@ def fetch_adzuna() -> list:
 
     jobs = []
 
-    # Search for multiple keywords in Colorado
-    searches = [
-        ('devops', 'colorado'),
-        ('site reliability engineer', 'denver'),
-        ('platform engineer', 'denver'),
-        ('sre', 'denver'),
-    ]
-
     seen_ids = set()
 
-    for keyword, location in searches:
+    for keyword, location in search_config.query_location_pairs():
         url = (
             f"https://api.adzuna.com/v1/api/jobs/us/search/1"
             f"?app_id={app_id}&app_key={app_key}"
@@ -260,12 +245,9 @@ def fetch_usajobs() -> list:
     jobs = []
     seen_ids = set()
 
-    searches = [
-        'IT specialist colorado',
-        'cloud engineer colorado',
-        'devops',
-        'systems engineer colorado',
-    ]
+    # USAJOBS has no separate location parameter here — the location rides along
+    # in the keyword string, which is how the API's free-text search works.
+    searches = [f"{q} {loc}".strip() for q, loc in search_config.query_location_pairs()]
 
     for keyword in searches:
         url = (
@@ -326,7 +308,7 @@ def fetch_builtincolorado() -> list:
     job_urls = []
     seen_ids = set()
 
-    searches = ['devops', 'sre', 'platform engineer', 'infrastructure', 'cloud engineer']
+    searches = search_config.queries()
     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
 
     # Pass 1: Get job URLs from search results
@@ -350,13 +332,14 @@ def fetch_builtincolorado() -> list:
                         job_url = job_item.get('url', '')
                         job_id = job_url.split('/')[-1] if job_url else None
                         title = job_item.get('name', '')
-                        desc = job_item.get('description', '')
 
                         if not job_id or job_id in seen_ids:
                             continue
 
-                        # Filter for relevant jobs before fetching details
-                        if not matches_keywords(title) and not matches_keywords(desc):
+                        # Filter before fetching details — this listing carries no
+                        # tags, so the title is all we have to go on, and it's the
+                        # part worth trusting anyway.
+                        if not wanted(title):
                             continue
 
                         seen_ids.add(job_id)
@@ -444,15 +427,14 @@ def fetch_linkedin() -> list:
     job_ids = []
     seen_ids = set()
 
-    searches = ['devops', 'sre', 'site reliability engineer', 'platform engineer', 'cloud engineer']
-
     # Pass 1: Get job IDs from search results
-    for keyword in searches:
+    for keyword, location in search_config.query_location_pairs():
         # Fetch first 50 results (start=0 and start=25)
         for start in [0, 25]:
             url = (
                 f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-                f"?keywords={urllib.parse.quote(keyword)}&location=Colorado&start={start}"
+                f"?keywords={urllib.parse.quote(keyword)}"
+                f"&location={urllib.parse.quote(location or 'Remote')}&start={start}"
             )
 
             try:
@@ -487,13 +469,8 @@ def fetch_linkedin() -> list:
             title_match = re.search(r'<h2[^>]*class="[^"]*top-card-layout__title[^"]*"[^>]*>([^<]+)</h2>', html)
             title = title_match.group(1).strip() if title_match else None
 
-            # Skip if title doesn't match keywords
-            if not title or not matches_keywords(title):
-                # Check description too
-                desc_match = re.search(r'<div[^>]*class="[^"]*description__text[^"]*"[^>]*>(.*?)</div>', html, re.DOTALL)
-                desc_text = re.sub(r'<[^>]+>', ' ', desc_match.group(1)) if desc_match else ''
-                if not matches_keywords(desc_text):
-                    continue
+            if not wanted(title):
+                continue
 
             # Extract company
             company_match = re.search(r'<a[^>]*class="[^"]*topcard__org-name-link[^"]*"[^>]*>([^<]+)</a>', html)
@@ -501,9 +478,12 @@ def fetch_linkedin() -> list:
                 company_match = re.search(r'<span[^>]*class="[^"]*topcard__flavor[^"]*"[^>]*>([^<]+)</span>', html)
             company = company_match.group(1).strip() if company_match else None
 
-            # Extract location
+            # Extract location. When the page doesn't say, fall back to the first
+            # place we searched rather than claiming to know.
             location_match = re.search(r'<span[^>]*class="[^"]*topcard__flavor topcard__flavor--bullet[^"]*"[^>]*>([^<]+)</span>', html)
-            location = location_match.group(1).strip() if location_match else 'Colorado'
+            searched_locations = search_config.locations()
+            default_location = searched_locations[0] if searched_locations else 'Remote'
+            location = location_match.group(1).strip() if location_match else default_location
 
             # Extract salary if present
             salary_min = None
@@ -570,7 +550,7 @@ def fetch_remotive() -> list:
             desc = item.get('description', '')
             tags = [t.lower() for t in item.get('tags', [])]
 
-            if not matches_keywords(title) and not matches_keywords(' '.join(tags)) and not matches_keywords(desc):
+            if not wanted(title, tags):
                 continue
 
             # Parse salary if present (format varies: "$220k-$300k", "$100,000 - $150,000", etc.)
@@ -633,7 +613,7 @@ def fetch_workingnomads() -> list:
             desc = item.get('description', '')
             tags_str = item.get('tags', '')
 
-            if not matches_keywords(title) and not matches_keywords(tags_str) and not matches_keywords(desc):
+            if not wanted(title, tags_str):
                 continue
 
             # Extract job ID from URL (e.g., /job/go/1272909/)
@@ -679,7 +659,7 @@ def fetch_himalayas() -> list:
             elif entry.get('summary'):
                 desc = entry.get('summary', '')
 
-            if not matches_keywords(title) and not matches_keywords(desc):
+            if not wanted(title):
                 continue
 
             # Extract company from custom namespace
@@ -724,10 +704,11 @@ def fetch_jobicy() -> list:
     jobs = []
     seen_ids = set()
 
-    # Search multiple relevant tags
-    searches = ['devops', 'sre', 'infrastructure', 'kubernetes', 'cloud']
-
-    for tag in searches:
+    # Jobicy filters by tag from its own fixed vocabulary, not free text. Your
+    # queries are used as tags, so a multi-word query ('site reliability
+    # engineer') matches nothing here rather than erroring. The single-word ones
+    # ('devops', 'kubernetes') are what do the work.
+    for tag in search_config.queries():
         url = f"https://jobicy.com/api/v2/remote-jobs?count=50&tag={urllib.parse.quote(tag)}"
 
         try:
@@ -747,8 +728,8 @@ def fetch_jobicy() -> list:
                 title = item.get('jobTitle', '')
                 desc = item.get('jobDescription', '')
 
-                # Double-check keyword match
-                if not matches_keywords(title) and not matches_keywords(desc):
+                # Jobicy already filtered by tag; confirm the title agrees.
+                if not wanted(title):
                     continue
 
                 # Parse salary
@@ -806,7 +787,7 @@ def fetch_hn_jobs() -> list:
                 text = item.get('text', '')  # Some jobs have inline description
 
                 # Filter for relevant jobs
-                if not matches_keywords(title) and not matches_keywords(text):
+                if not wanted(title):
                     continue
 
                 # Parse company from title (format: "Company (YC Batch) Is Hiring Role")
@@ -885,7 +866,7 @@ def fetch_ashby() -> list:
                 desc_plain = item.get('descriptionPlain', '')
 
                 # Filter for relevant roles
-                if not matches_keywords(title) and not matches_keywords(desc_plain):
+                if not wanted(title):
                     continue
 
                 seen_ids.add(job_id)
@@ -954,9 +935,7 @@ def fetch_findwork() -> list:
     jobs = []
     seen_ids = set()
 
-    searches = ['devops', 'sre', 'platform engineer', 'infrastructure']
-
-    for keyword in searches:
+    for keyword in search_config.queries():
         url = f"https://findwork.dev/api/jobs/?search={urllib.parse.quote(keyword)}&remote=true"
 
         try:
@@ -1015,12 +994,16 @@ FETCHERS = {
 
 
 def run_ingestion(sources: list = None):
-    """Run ingestion for specified sources (or all if none specified)."""
+    """Run ingestion for the given sources.
+
+    With none given, use whatever `sources:` in search.yaml says — which is how
+    someone outside Colorado turns off the Colorado-only board.
+    """
     init_db()
     conn = get_connection()
 
     if sources is None:
-        sources = list(FETCHERS.keys())
+        sources = search_config.enabled_sources(list(FETCHERS.keys()))
 
     total_found = 0
     total_new = 0

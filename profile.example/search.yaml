@@ -1,0 +1,82 @@
+# What you're looking for. This drives job ingestion.
+#
+#     make ingest            (or: python scripts/ingest_jobs.py)
+#
+# The shipped values describe an infrastructure/platform engineer in Colorado,
+# because that's the job hunt this tool was built for. They are an example, not
+# a default worth keeping — change them to yours first.
+#
+# Unlike the resume generator, ingestion falls back to this example when you
+# have no profile/ yet, so a fresh clone can fetch real jobs immediately. The
+# blast radius is a handful of irrelevant rows in a local SQLite file, which is
+# a fair trade for working out of the box. (Generating a *resume* from example
+# data is a different matter — you might send it — so that errors instead.)
+
+# The filter. A job is kept only if its title, tags, or description mentions one
+# of these. Matching is case-insensitive and word-boundary aware, so 'aws' does
+# not match 'laws'.
+#
+# Widen this to catch more; tighten it to cut noise. This is the single biggest
+# lever on what lands in your database.
+keywords:
+  - devops
+  - sre
+  - site reliability
+  - platform engineer
+  - infrastructure
+  - kubernetes
+  - terraform
+  - aws
+  - cloud engineer
+  - platform team
+  - reliability
+  - k8s
+  - docker
+  - ci/cd
+  - cicd
+
+# What to type into a search box. Only some sources need this — the feed-based
+# ones just hand us everything and let `keywords` above do the filtering.
+#
+# Keep this list tight. Sources that take queries get hit once per query (and
+# for some, once per query per location), so doubling this list doubles the
+# requests. A few well-chosen terms beat an exhaustive list that gets you
+# rate-limited.
+queries:
+  - devops
+  - sre
+  - site reliability engineer
+  - platform engineer
+  - cloud engineer
+
+# Where. Used only by location-aware sources; the remote-first boards ignore it.
+# Leave empty for remote-only searching.
+locations:
+  - Colorado
+  - Denver
+
+# Which sources to fetch from. Comment out what you don't want.
+#
+# Most are global remote boards. Three are not, and are the first thing to
+# change if you're not a US infrastructure engineer:
+#   builtinco  — Built In Colorado. Colorado only. Useless elsewhere.
+#   usajobs    — US federal government. US only, needs an API key.
+#   adzuna     — global, but its value here is location search; needs an API key.
+#
+# Sources needing API keys are skipped with a note if the key is absent, so it
+# is safe to leave them enabled. See .env.example.
+sources:
+  - remoteok       # remote tech jobs, no auth
+  - hn             # Hacker News "Who's Hiring", monthly thread, no auth
+  - hn_jobs        # Hacker News job posts, no auth
+  - wwr            # We Work Remotely, RSS, no auth
+  - remotive       # remote jobs, no auth
+  - workingnomads  # remote jobs, no auth
+  - himalayas      # remote jobs, no auth
+  - jobicy         # remote jobs, no auth
+  - ashby          # Ashby-hosted boards, no auth
+  - linkedin       # scraped; brittle by nature, be gentle with it
+  - builtinco      # Colorado only
+  - usajobs        # US federal, needs API key
+  - adzuna         # needs API key
+  - findwork       # needs API key
