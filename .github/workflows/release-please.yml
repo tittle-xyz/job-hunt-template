@@ -1,0 +1,89 @@
+name: release-please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Opens (and keeps updating) a release PR from the conventional commits on main.
+  # Merging it tags the release and writes the changelog.
+  #
+  # Worth knowing if you protect main, as this repo does: release-please opens its
+  # PR with GITHUB_TOKEN, and GitHub deliberately does not raise workflow-triggering
+  # events for GITHUB_TOKEN actions — the recursion guard. So ci.yml never runs on
+  # the release PR, and any required status checks on it stay pending forever. The
+  # PR then needs an admin merge.
+  #
+  # That's the accepted cost. The alternative is a PAT to create, scope, and rotate
+  # in every repo made from this template, which is a worse deal for a template than
+  # an occasional admin merge of a PR that only touches CHANGELOG.md and a version
+  # string — code that CI already vetted on main.
+  #
+  # It doesn't affect you unless you protect main too. A fresh repo from this
+  # template merges release PRs normally.
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      pr: ${{ steps.release.outputs.pr }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Refresh the readiness badge on the release PR, so the badge in the README
+  # tracks releases instead of being remembered by hand.
+  #
+  # It lands here rather than on main for two reasons, both load-bearing:
+  #
+  #   main is protected and the Actions bot isn't an admin, so CI cannot push to
+  #   it. A release-please PR branch is not protected, so this can.
+  #
+  #   The toaster-ready action's own `badge:` input runs `toaster check --offline`.
+  #   Offline means no GitHub API, which means the "latest CI run green" signal
+  #   reads no-data and the score drops ~6 points — a badge saying 88 on a repo
+  #   that scores 94. So call the binary directly, with a token in the
+  #   environment, and let the API signals resolve.
+  badge:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.pr }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ fromJson(needs.release-please.outputs.pr).headBranchName }}
+          fetch-depth: 0  # full history for git-based signals
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install toaster
+        run: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest
+
+      - name: Refresh readiness badge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          toaster check . --format svg > docs/badge.svg
+          grep -o 'aria-label="[^"]*"' docs/badge.svg | head -1
+
+      - name: Commit if it moved
+        run: |
+          if git diff --quiet docs/badge.svg; then
+            echo "badge unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/badge.svg
+          git commit -m "chore: refresh readiness badge"
+          git push
