@@ -92,26 +92,14 @@ coverage:
 lint:
 	$(PY) -m pyflakes job_hunt scripts tests
 
-# Refresh the readiness badge in the README.
+# Refresh the readiness badge in the README by hand.
 #
-# Manual on purpose, and it was tried the other way first — see
-# tittle-xyz/toaster-ready#28.
+# You shouldn't normally need this: the release workflow refreshes the badge on
+# every release PR. Useful when you want to see where the score sits right now,
+# without waiting for a release.
 #
-# toaster's "CI green" signal asks for the newest run on the default branch across
-# all workflows, and treats an in-progress run as no-data (-6). Any workflow that
-# scores the repo is itself a run on the default branch, and cannot be complete
-# while it's running. So a badge generated inside Actions races its own workflow
-# and lands on 94 or 88 depending on which run the API lists first. Two attempts
-# to fix that from this side (waiting for ci; scoring the repo by slug instead of
-# the checkout) each fixed a real bug and neither fixed the race, because the race
-# isn't ours.
-#
-# Generated from a laptop there's no race, and the number is right. The CI gate at
-# 85 means a stale badge can only ever understate a repo that improved.
-#
-# When #28 lands (filter to the newest *completed* run), this can move into the
-# release workflow and refresh itself on the release PR — that branch isn't
-# protected, so the bot can commit there.
+# Requires the toaster binary, v0.4.2 or newer:
+#   go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest
 badge:
 	@command -v toaster >/dev/null || { echo "toaster not installed: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@latest"; exit 1; }
 	@toaster check . --format svg > docs/badge.svg

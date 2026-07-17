@@ -38,3 +38,80 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # Refresh the readiness badge on the release PR, so the badge tracks releases
+  # instead of being remembered by hand.
+  #
+  # This lands on the release branch rather than main because main is protected and
+  # the Actions bot isn't an admin — it cannot push there. A release-please PR
+  # branch isn't protected, so it can, and the badge arrives reviewable, with the
+  # release.
+  #
+  # This was tried once before and reverted: toaster's CI-green signal used to read
+  # the newest run on the default branch of any status, and the workflow doing the
+  # scoring is itself a run on main that cannot be complete while it runs. The badge
+  # docked the repo for its own existence and landed on 88 or 94 by coin flip. Fixed
+  # upstream in toaster-ready v0.4.2 (tittle-xyz/toaster-ready#28) — it now reads the
+  # newest *completed* run of a CI workflow, so a live release run can't answer the
+  # question.
+  #
+  # It calls the binary directly rather than using the action's `badge:` input,
+  # which scores with --offline: no API means no CI-green signal, and a badge 6
+  # points light.
+  badge:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.pr }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ fromJson(needs.release-please.outputs.pr).headBranchName }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install toaster
+        # v0.4.2 is the floor: earlier versions have the race described above.
+        run: go install github.com/tittle-xyz/toaster-ready/cmd/toaster@v0.4.2
+
+      # Not for the badge's sake — the fixed signal reads the newest completed CI
+      # run and would answer correctly regardless. This is so the badge describes a
+      # commit whose CI actually passed, rather than one still being judged.
+      - name: Wait for CI on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 40); do
+            conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow=ci.yml \
+              --commit "$GITHUB_SHA" --limit 1 --json conclusion --jq '.[0].conclusion // "pending"')
+            case "$conclusion" in
+              success)  echo "ci green on $GITHUB_SHA"; exit 0 ;;
+              pending|"") echo "waiting for ci ($i/40)..."; sleep 15 ;;
+              *)        echo "ci concluded '$conclusion' — not refreshing the badge"; exit 1 ;;
+            esac
+          done
+          echo "timed out waiting for ci"; exit 1
+
+      # Scores the repo by slug — the default branch — not the branch we're standing
+      # on. The release branch carries two commits main doesn't (the release chore
+      # and this badge), which tips the instructions-freshness ratio and costs 3
+      # points. The badge is a claim about the repo, so score the repo.
+      - name: Refresh readiness badge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          toaster check "$GITHUB_REPOSITORY" --format svg > docs/badge.svg
+          grep -o 'aria-label="[^"]*"' docs/badge.svg | head -1
+
+      - name: Commit if it moved
+        run: |
+          if git diff --quiet docs/badge.svg; then
+            echo "badge unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/badge.svg
+          git commit -m "chore: refresh readiness badge"
+          git push
