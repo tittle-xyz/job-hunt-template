@@ -46,8 +46,10 @@ install: $(VENV)
 	@echo "Installed ($$($(PY) --version)). Next: make init"
 	@command -v typst >/dev/null 2>&1 || echo "NOTE: typst not found — needed for resumes. macOS: brew install typst"
 
+# Deliberately not $(PY): init is stdlib-only and must work before `make install`,
+# on whatever python3 the machine has.
 init:
-	@$(PY) init.py
+	@python3 scripts/init.py
 
 ingest:
 	$(PY) -m job_hunt ingest $(if $(SOURCE),--source $(SOURCE),)
