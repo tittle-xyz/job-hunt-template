@@ -53,6 +53,22 @@ jobs:
           python -m job_hunt resume platform
           test -f resumes/tailored/ci_smoke_test_senior_platform_engineer.pdf
 
+  # Ramp-up readiness, scored by tittle-xyz/toaster-ready. A template that's hard
+  # to start in has failed at the one job it has, so this gates rather than
+  # reports. No badge on purpose: the org gates and doesn't badge — not even
+  # toaster-ready badges itself — and a badge would have to auto-commit to main,
+  # which is protected.
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history for git-based signals
+      - name: Gate ramp-up readiness (toaster-ready)
+        uses: tittle-xyz/toaster-ready@v0
+        with:
+          min: 85  # a template should model the "exemplary" band, not just clear the bar
+
   # init runs before `make install`, on whatever python the machine has. macOS
   # still ships 3.9, so that's the floor it has to clear — the rest of the tool
   # needs 3.11+, but the script that sets you up cannot.
